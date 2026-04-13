@@ -27,4 +27,11 @@ router.delete(
   userService.freezeAccount,
 );
 
+router.patch(
+  "/restore-account/:userId",
+  userService.auth({ accessRoles: endpoint.restoreAccount }),
+  validation({ schema: validators.restoreAccount }),
+  userService.restoreAccount
+);
+
 export default router

@@ -28,3 +28,9 @@ export const freezeAccount={
     userId:generalFields.id
   })
 }
+
+export const restoreAccount = {
+  params: joi.object({
+    userId: generalFields.id,
+  }),
+};

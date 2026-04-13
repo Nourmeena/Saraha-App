@@ -16,7 +16,7 @@ import {
   refreshToken,
   generateCredential,
 } from "../../utils/security/token.security.js";
-import { customAlphabet } from 'nanoid';
+import { customAlphabet } from "nanoid";
 import { emailEvent } from "../../utils/event/email.event.js";
 
 // // before async handler
@@ -45,7 +45,7 @@ import { emailEvent } from "../../utils/event/email.event.js";
 // };
 
 export const signup = asyncHandler(async (req, res, next) => {
-  const { fullname, email, password, phone } = req.body;
+  const { fullname, email, password, phone,gender,role } = req.body;
   console.log({ fullname, email, password, phone });
 
   const userExists = await DBService.findOne({
@@ -60,7 +60,7 @@ export const signup = asyncHandler(async (req, res, next) => {
 
     const encryptPhone = await crypto.encryption({ text: phone });
 
-    const otp = customAlphabet('0123456789', 6)()||'030331'
+    const otp = customAlphabet("0123456789", 6)() || "030331";
     const confirmEmailOtp = await bcrypt.generateHash({ text: otp });
     const user = await DBService.create({
       model: UserModel,
@@ -71,27 +71,35 @@ export const signup = asyncHandler(async (req, res, next) => {
           password: hashPass,
           phone: encryptPhone,
           confirmEmailOtp,
+          gender,
+          role,
         },
       ],
     });
-    emailEvent.emit('confirmEmail',{to:email,otp:otp,text:"Hello new user"})
+    emailEvent.emit("confirmEmail", {
+      to: email,
+      otp: otp,
+      text: "Hello new user",
+    });
     return successResponse({ res, status: 201, data: { user } });
   }
 });
 
-export const confirmEmail = asyncHandler(async(req, res, next) => {
-  const { otp, email } = req.body
+export const confirmEmail = asyncHandler(async (req, res, next) => {
+  const { otp, email } = req.body;
   const user = await DBService.findOne({
     model: UserModel,
     filter: {
       email,
       confirmEmail: false,
-      confirmEmailOtp: { $exists: true }
-    }
+      confirmEmailOtp: { $exists: true },
+    },
   });
 
   if (!user) {
-    return next(new Error("invalid account or already verified", { cause: 404 }))
+    return next(
+      new Error("invalid account or already verified", { cause: 404 }),
+    );
   }
 
   const otpTrue = await bcrypt.compareHash({
@@ -106,7 +114,7 @@ export const confirmEmail = asyncHandler(async(req, res, next) => {
     model: UserModel,
     filter: { email },
     data: {
-      $set: { confirmEmail: true, confirmedAt :Date.now()},
+      $set: { confirmEmail: true, confirmedAt: Date.now() },
       $unset: { confirmEmailOtp: 1 },
       $inc: { __v: 1 },
     },
@@ -115,7 +123,6 @@ export const confirmEmail = asyncHandler(async(req, res, next) => {
     ? successResponse({ res, data: { updateUser } })
     : next(new Error("fail to confirm email", { cause: 404 }));
 });
-
 
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -163,8 +170,8 @@ export const signupWithGmail = asyncHandler(async (req, res, next) => {
 
   if (userExists) {
     return next(new Error("email already exists", { cause: 409 })); //this call error middleware directly that has 4 arg
-  } 
-  
+  }
+
   const [user] = await DBService.create({
     model: UserModel,
     data: [
@@ -181,7 +188,6 @@ export const signupWithGmail = asyncHandler(async (req, res, next) => {
     const credentials = await generateCredential({ user });
     return successResponse({ res, status: 201, data: { credentials } });
   }
-  
 });
 //eyJhbGciOiJSUzI1NiIsImtpZCI6ImQyNzU0MDdjMzllODAzNmFhNzM1ZWIyYzE3YzU0ODc2MWNlZDZhNjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI2NjUwOTY1Mjc0MjQtMnJjcnIxMWUwNnBuM2I0c2E1bHF2dXRpZ20ycGtuaDAuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI2NjUwOTY1Mjc0MjQtMnJjcnIxMWUwNnBuM2I0c2E1bHF2dXRpZ20ycGtuaDAuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDE0NTY2MjY0NDAyOTE2MTA3MDAiLCJlbWFpbCI6Im5vdXJhYW4yMDA0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJub25jZSI6Im5vdF9wcm92aWRlZCIsIm5iZiI6MTc3MjA4MzcwNywibmFtZSI6Ik5vdXJhbiBBc2hyYWYiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0VxdXEzeTZ5U01wSDZ2b1FvWXR2cF9td0NhX2V5b3pscXZUSk9tU1Z4aGR4SnJBPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6Ik5vdXJhbiIsImZhbWlseV9uYW1lIjoiQXNocmFmIiwiaWF0IjoxNzcyMDg0MDA3LCJleHAiOjE3NzIwODc2MDcsImp0aSI6ImZjMGE4MWMwNjFiOTE3MzA3NmE4YWFiZjA3MmEwNDEyNTk5NzkxZmUifQ.kvcPa6hcBV0ML_d5ejeRuMJiox_58_3Vt8_5md7laT_ez2XGmSvwnvmwuJGorywmrtJrVPK2Xn7y49Gt2-pP3boKdwtK6wMcQ1b_ggTzFAbASnK9y_YQpX8aO6fX9cKzx0bqsj1DEDyYd-LiAgO1aFkPLG9o0Yw2pYsTrAiOQp7wwgfXuIiZfIoDyx0l2W9g5sFVl0PeqrrILpnhvKv1JiSm0DjqFI2HTy_tpzplizqrveQdG8_5prDOuXGP9mnL8uuer6c0sZWa0cSGUsISjSUC3JfQq-bJDJ8AFUJkNBiOJCK0OvkqVHaTDAiZ7o8TJtBOM4iMyOBlygfQBMSKBw
 

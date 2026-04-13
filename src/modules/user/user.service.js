@@ -96,11 +96,41 @@ export const freezeAccount = asyncHandler(async (req, res, next) => {
       _id: userId || req.user._id,
     },
     data: {
-      deletedAt: Date.now(),
-      deletedBy: userId || req.user._id,
+      $unset: {
+        restoredAt: 1,
+        restoredBy: 1,
+      },
+      $set: {
+        deletedAt: Date.now(),
+        deletedBy: req.user._id,
+      },
     },
   });
   return user
     ? successResponse({ res, data: { user } })
     : next(new Error("invalid account", { cause: 404 }));
 });
+
+export const restoreAccount = asyncHandler(async (req, res, next) => {
+  const { userId } = req.params;
+  const user = await DBService.findOneAndUpdate({
+    model: UserModel,
+    filter: {
+      _id: userId,
+      deletedAt: { $exists: true },
+      deletedBy:{$ne:userId}
+    },
+    data: {
+      $unset: {
+        deletedAt:1,deletedBy:1
+      },
+      $set: {
+        restoredAt: Date.now(),
+        restoredBy:req.user._id
+      }
+    }
+  })
+  return user
+    ? successResponse({ res, data: { user } })
+    : next(new Error("Account not found or not deleted", { cause: 404 }));
+})
