@@ -134,3 +134,25 @@ export const restoreAccount = asyncHandler(async (req, res, next) => {
     ? successResponse({ res, data: { user } })
     : next(new Error("Account not found or not deleted", { cause: 404 }));
 })
+
+export const deleteAccount = asyncHandler(async (req, res, next) => {
+  const { userId } = req.params;
+  const user = await DBService.deleteOne({
+    model: UserModel,
+    filter: {
+      _id: userId,
+      deletedAt: {$exists:true}
+    }
+  })
+  if (user && user.deletedCount > 0) {
+    return successResponse({
+      res,
+      data: { deletedCount: user.deletedCount },
+    });
+  }
+  return next(
+    new Error("Account not found or not eligible for permanent deletion", {
+      cause: 404,
+    }),
+  );
+})

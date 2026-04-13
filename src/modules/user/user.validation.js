@@ -1,6 +1,6 @@
 import joi from "joi";
 import mongoose from "mongoose";
-import {generalFields} from '../../middleware/validation.middleware.js'
+import { generalFields } from "../../middleware/validation.middleware.js";
 
 export const shareProfile = {
   params: joi.object({
@@ -23,13 +23,19 @@ export const updateBasicInfo = {
   }),
 };
 
-export const freezeAccount={
+export const freezeAccount = {
   params: joi.object({
-    userId:generalFields.id
-  })
-}
+    userId: generalFields.id,
+  }),
+};
 
 export const restoreAccount = {
+  params: joi.object({
+    userId: generalFields.id,
+  }),
+};
+
+export const deleteAccount = {
   params: joi.object({
     userId: generalFields.id,
   }),

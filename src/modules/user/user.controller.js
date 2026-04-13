@@ -34,4 +34,9 @@ router.patch(
   userService.restoreAccount
 );
 
+router.delete('/:userId',
+  userService.auth({ accessRoles: endpoint.deleteAccount }),
+  validation({schema:validators.deleteAccount}),
+  userService.deleteAccount
+)
 export default router
