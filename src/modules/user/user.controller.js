@@ -39,4 +39,10 @@ router.delete('/:userId',
   validation({schema:validators.deleteAccount}),
   userService.deleteAccount
 )
+
+router.patch('/update-password',
+  authentication(),
+  validation({ schema: validators.updatePassword }),
+  userService.updatePassword
+)
 export default router

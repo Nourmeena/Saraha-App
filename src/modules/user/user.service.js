@@ -2,6 +2,7 @@ import { asyncHandler, successResponse } from "../../utils/response.js";
 import * as DBService from "../../db/db.service.js";
 import { UserModel, roleEnum } from "../../db/models/user.model.js";
 import * as crypto from "../../utils/security/encryption.security.js";
+import {compareHash,generateHash} from '../../utils/security/hash.security.js'
 import {
   generateCredential,
   tokenTypeEnum,
@@ -155,4 +156,23 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
       cause: 404,
     }),
   );
+})
+
+export const updatePassword = asyncHandler(async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body
+  if (!await compareHash({ text: oldPassword, hash: req.user.password })) {
+    return next(new Error("invalid old password"))
+  }
+  const user = await DBService.findOneAndUpdate({
+    model: UserModel,
+    filter: {
+      _id: req.user._id,
+    },
+    data: {
+      password: await generateHash({text:newPassword})
+    },
+  });
+   return user
+     ? successResponse({ res, data: { user } })
+     : next(new Error("Not registered account", { cause: 404 }));
 })

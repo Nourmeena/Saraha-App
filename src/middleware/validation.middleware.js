@@ -4,13 +4,11 @@ import { genderEnum } from "../db/models/user.model.js";
 import mongoose from "mongoose";
 
 export const generalFields = {
-  id: Joi
-    .string()
-    .custom((value, helper) => {
-      return mongoose.Types.ObjectId.isValid(value)
-        ? value
-        : helper.message("invalid id");
-    }),
+  id: Joi.string().custom((value, helper) => {
+    return mongoose.Types.ObjectId.isValid(value)
+      ? value
+      : helper.message("invalid id");
+  }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
     .required()

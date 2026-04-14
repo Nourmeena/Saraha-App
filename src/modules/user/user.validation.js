@@ -40,3 +40,11 @@ export const deleteAccount = {
     userId: generalFields.id,
   }),
 };
+
+export const updatePassword = {
+  body: joi.object({
+    oldPassword: generalFields.password.required(),
+    newPassword: generalFields.password.not(joi.ref("oldPassword")).required(),
+    confirmPassword:generalFields.password.valid(joi.ref("newPassword")).required()
+  })
+}
