@@ -31,6 +31,10 @@ export const generalFields = {
     "string.min": "Full name must be at least 3 characters",
     "string.max": "Full name must be at most 50 characters",
   }),
+  confirmPassword: Joi.string().required().valid(Joi.ref("password")).messages({
+    "any.only": "Passwords do not match",
+    "string.empty": "Confirm password is required",
+  }),
   phone: Joi.string()
     .pattern(/^[0-9]{10,15}$/)
     .required()
@@ -39,6 +43,7 @@ export const generalFields = {
       "string.empty": "Phone is required",
     }),
   gender: Joi.string().valid(...Object.values(genderEnum)),
+  otp: Joi.string().pattern(/^[0-9]{6}$/)
 };
 
 export const validation = ({ schema }) => {

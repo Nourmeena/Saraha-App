@@ -75,6 +75,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     confirmedAt: Date,
+    forgetPasswordOTP: { type: String },
     deletedBy: {
       type: mongoose.Schema.Types.ObjectId,
     },
