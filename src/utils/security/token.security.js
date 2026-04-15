@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import ms from 'ms';
 import { UserModel, roleEnum } from "../../db/models/user.model.js";
 import { TokenModel } from "../../db/models/token.model.js";
 import { successResponse } from "../../utils/response.js";
@@ -9,7 +10,7 @@ export const signatureLevelEnum = { bearer: "Bearer", system: "System" };
 export const tokenTypeEnum = { access: "Access", refresh: "Refresh" };
 export const logoutEnum = {
   signOutFromAllDevice: "signOutFromAllDevice",
-  signout: "signout",
+  signOut: "signOut",
   stayLoggedIn: "stayLoggedIn",
 };
 export const generateToken = async ({
@@ -126,3 +127,18 @@ export const generateCredential = async ({ user } = {}) => {
   });
   return { token, refresh };
 };
+
+export const createRevokeToken = async ({ req }={}) => {
+  await DBService.create({
+          model: TokenModel,
+          data: [
+            {
+              jti: req.decoded.jti,
+              expiresIn:
+                req.decoded.iat + ms(process.env.TOKEN_EXPIRE_REFRESH) / 1000,
+              userId: req.decoded._id,
+            },
+          ],
+  })
+  return true;
+}

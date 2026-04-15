@@ -40,17 +40,6 @@ export const deleteAccount = {
     userId: generalFields.id,
   }),
 };
-
-export const updatePassword = {
-  body: joi.object({
-    oldPassword: generalFields.password.required(),
-    newPassword: generalFields.password.not(joi.ref("oldPassword")).required(),
-    confirmPassword: generalFields.password
-      .valid(joi.ref("newPassword"))
-      .required(),
-  }),
-};
-
 export const logout = {
   body: joi.object({
     flag: joi
@@ -59,3 +48,15 @@ export const logout = {
       .default(logoutEnum.stayLoggedIn),
   }),
 };
+
+export const updatePassword = {
+  body:logout.body.append({
+    oldPassword: generalFields.password.required(),
+    newPassword: generalFields.password.not(joi.ref("oldPassword")).required(),
+    confirmPassword: generalFields.password
+      .valid(joi.ref("newPassword"))
+      .required(),
+  }),
+};
+
+

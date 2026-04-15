@@ -133,6 +133,10 @@ export const login = asyncHandler(async (req, res, next) => {
     model: UserModel,
     filter: { email, provider: providerEnum.system },
   });
+  if (user.deletedAt) {
+    return next(new Error("Invalid user", { cause: 404 }));
+  }
+
   const match = await bcrypt.compareHash({
     text: password,
     hash: user.password,
@@ -268,22 +272,23 @@ export const verifyOtpForgetPassword = asyncHandler(async (req, res, next) => {
 });
 
 export const resetForgetPassword = asyncHandler(async (req, res, next) => {
-  const { password, email } = req.body
-    const user = await DBService.findOneAndUpdate({
-      model: UserModel,
-      filter: {
-        email,
-        confirmEmail: { $exists: true },
-        deletedAt: { $exists: false },
-        provider: providerEnum.system,
-        forgetPasswordOTP: { $exists: true },
-      },
-      data: {
-        password:await generateHash({text:password})
-      }
-    });
-    if (!user) {
-      return next(new Error("in-valid account"));
+  const { password, email } = req.body;
+  const user = await DBService.findOneAndUpdate({
+    model: UserModel,
+    filter: {
+      email,
+      confirmEmail: { $exists: true },
+      deletedAt: { $exists: false },
+      provider: providerEnum.system,
+      forgetPasswordOTP: { $exists: true },
+    },
+    data: {
+      password: await generateHash({ text: password }),
+      changeCredentialsTime: new Data(),
+    },
+  });
+  if (!user) {
+    return next(new Error("in-valid account"));
   }
   return successResponse({ res, data: user });
-})
+});

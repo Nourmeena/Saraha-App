@@ -12,6 +12,7 @@ import {
   tokenTypeEnum,
   decodeToken,
   logoutEnum,
+  createRevokeToken
 } from "../../utils/security/token.security.js";
 import ms from "ms";
 import { encryption } from "../../utils/security/encryption.security.js";
@@ -111,6 +112,7 @@ export const freezeAccount = asyncHandler(async (req, res, next) => {
         deletedAt: Date.now(),
         deletedBy: req.user._id,
       },
+      changeCredentialsTime:new Date()
     },
   });
   return user
@@ -166,6 +168,18 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
 });
 
 export const updatePassword = asyncHandler(async (req, res, next) => {
+  const { flag } = req.body
+  let updatedData={}
+  switch (flag) {
+    case logoutEnum.signOutFromAllDevice:
+      updatedData.changeCredentialsTime = new Date()
+      break;
+    case logoutEnum.signOut:
+      await createRevokeToken({ req })
+      break;
+    default:
+      break;
+  }
   const { oldPassword, newPassword } = req.body;
   if (!(await compareHash({ text: oldPassword, hash: req.user.password }))) {
     return next(new Error("invalid old password"));
@@ -177,6 +191,7 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
     },
     data: {
       password: await generateHash({ text: newPassword }),
+      ...updatedData
     },
   });
   return user
@@ -201,17 +216,7 @@ export const logout = asyncHandler(async (req, res, next) => {
       });
       break;
     default:
-      await DBService.create({
-        model: TokenModel,
-        data: [
-          {
-            jti: req.decoded.jti,
-            expiresIn:
-              req.decoded.iat + ms(process.env.TOKEN_EXPIRE_REFRESH) / 1000,
-            userId: req.decoded._id,
-          },
-        ],
-      });
+      await createRevokeToken({req})
       status=201
       break;
   }
