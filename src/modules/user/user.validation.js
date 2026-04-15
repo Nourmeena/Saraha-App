@@ -1,7 +1,7 @@
 import joi from "joi";
 import mongoose from "mongoose";
 import { generalFields } from "../../middleware/validation.middleware.js";
-
+import { logoutEnum } from "../../utils/security/token.security.js";
 export const shareProfile = {
   params: joi.object({
     userId: joi
@@ -45,6 +45,17 @@ export const updatePassword = {
   body: joi.object({
     oldPassword: generalFields.password.required(),
     newPassword: generalFields.password.not(joi.ref("oldPassword")).required(),
-    confirmPassword:generalFields.password.valid(joi.ref("newPassword")).required()
-  })
-}
+    confirmPassword: generalFields.password
+      .valid(joi.ref("newPassword"))
+      .required(),
+  }),
+};
+
+export const logout = {
+  body: joi.object({
+    flag: joi
+      .string()
+      .valid(...Object.values(logoutEnum))
+      .default(logoutEnum.stayLoggedIn),
+  }),
+};

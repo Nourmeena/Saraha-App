@@ -1,13 +1,17 @@
 import { asyncHandler, successResponse } from "../../utils/response.js";
 import * as DBService from "../../db/db.service.js";
 import { UserModel, roleEnum } from "../../db/models/user.model.js";
-import { TokenModel} from "../../db/models/token.model.js";
+import { TokenModel } from "../../db/models/token.model.js";
 import * as crypto from "../../utils/security/encryption.security.js";
-import {compareHash,generateHash} from '../../utils/security/hash.security.js'
+import {
+  compareHash,
+  generateHash,
+} from "../../utils/security/hash.security.js";
 import {
   generateCredential,
   tokenTypeEnum,
   decodeToken,
+  logoutEnum,
 } from "../../utils/security/token.security.js";
 import ms from "ms";
 import { encryption } from "../../utils/security/encryption.security.js";
@@ -121,22 +125,23 @@ export const restoreAccount = asyncHandler(async (req, res, next) => {
     filter: {
       _id: userId,
       deletedAt: { $exists: true },
-      deletedBy:{$ne:userId}
+      deletedBy: { $ne: userId },
     },
     data: {
       $unset: {
-        deletedAt:1,deletedBy:1
+        deletedAt: 1,
+        deletedBy: 1,
       },
       $set: {
         restoredAt: Date.now(),
-        restoredBy:req.user._id
-      }
-    }
-  })
+        restoredBy: req.user._id,
+      },
+    },
+  });
   return user
     ? successResponse({ res, data: { user } })
     : next(new Error("Account not found or not deleted", { cause: 404 }));
-})
+});
 
 export const deleteAccount = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
@@ -144,9 +149,9 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
     model: UserModel,
     filter: {
       _id: userId,
-      deletedAt: {$exists:true}
-    }
-  })
+      deletedAt: { $exists: true },
+    },
+  });
   if (user && user.deletedCount > 0) {
     return successResponse({
       res,
@@ -158,12 +163,12 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
       cause: 404,
     }),
   );
-})
+});
 
 export const updatePassword = asyncHandler(async (req, res, next) => {
-  const { oldPassword, newPassword } = req.body
-  if (!await compareHash({ text: oldPassword, hash: req.user.password })) {
-    return next(new Error("invalid old password"))
+  const { oldPassword, newPassword } = req.body;
+  if (!(await compareHash({ text: oldPassword, hash: req.user.password }))) {
+    return next(new Error("invalid old password"));
   }
   const user = await DBService.findOneAndUpdate({
     model: UserModel,
@@ -171,25 +176,45 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
       _id: req.user._id,
     },
     data: {
-      password: await generateHash({text:newPassword})
+      password: await generateHash({ text: newPassword }),
     },
   });
-   return user
-     ? successResponse({ res, data: { user } })
-     : next(new Error("Not registered account", { cause: 404 }));
-})
-
+  return user
+    ? successResponse({ res, data: { user } })
+    : next(new Error("Not registered account", { cause: 404 }));
+});
 
 export const logout = asyncHandler(async (req, res, next) => {
-  console.log(req.decoded.jti)
-  const revokeToken = await DBService.create({
-    model: TokenModel,
-    data:[ 
-      {
-        jti: req.decoded.jti,
-        expiresIn: req.decoded.iat + (ms(process.env.TOKEN_EXPIRE_REFRESH) / 1000),
-        userId:req.decoded._id
-      }],
-  });
-  return successResponse({res,status:201,data:{decoded:req.decoded}})
-})
+  const { flag } = req.body;
+  let status = 200;
+  //to not store the jti of each device
+  switch (flag) {
+    case logoutEnum.signOutFromAllDevice:
+      await DBService.updateOne({
+        model: UserModel,
+        filter: {
+          _id: req.user._id,
+        },
+        data: {
+          changeCredentialsTime: new Date(),
+        },
+      });
+      break;
+    default:
+      await DBService.create({
+        model: TokenModel,
+        data: [
+          {
+            jti: req.decoded.jti,
+            expiresIn:
+              req.decoded.iat + ms(process.env.TOKEN_EXPIRE_REFRESH) / 1000,
+            userId: req.decoded._id,
+          },
+        ],
+      });
+      status=201
+      break;
+  }
+
+  return successResponse({ res, status, data: { decoded: req.decoded } });
+});

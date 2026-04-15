@@ -3,11 +3,15 @@ import { UserModel, roleEnum } from "../../db/models/user.model.js";
 import { TokenModel } from "../../db/models/token.model.js";
 import { successResponse } from "../../utils/response.js";
 import * as DBService from "../../db/db.service.js";
-import {nanoid} from 'nanoid'
+import { nanoid } from "nanoid";
 
 export const signatureLevelEnum = { bearer: "Bearer", system: "System" };
-export const tokenTypeEnum={access:"Access",refresh:"Refresh"}
-
+export const tokenTypeEnum = { access: "Access", refresh: "Refresh" };
+export const logoutEnum = {
+  signOutFromAllDevice: "signOutFromAllDevice",
+  signout: "signout",
+  stayLoggedIn: "stayLoggedIn",
+};
 export const generateToken = async ({
   payload = {},
   signature = process.env.TOKEN_SECRET,
@@ -34,8 +38,11 @@ export const verifyToken = async ({
 export const getSignature = async ({
   signatureLevel = signatureLevelEnum.bearer,
 }) => {
-  let signature={accessSignature:"undefined",refreshSignature:"undefined"}
-  switch(signatureLevel){
+  let signature = {
+    accessSignature: "undefined",
+    refreshSignature: "undefined",
+  };
+  switch (signatureLevel) {
     case signatureLevelEnum.system:
       signature.accessSignature = process.env.TOKEN_ADMIN_SECRET;
       signature.refreshSignature = process.env.TOKEN_ADMIN_REFRESH;
@@ -45,10 +52,14 @@ export const getSignature = async ({
       signature.refreshSignature = process.env.TOKEN_USER_REFRESH;
       break;
   }
-  return signature
+  return signature;
 };
 
-export const decodeToken = async ({ authorization = "", next, tokenType = tokenTypeEnum.access } = {}) => {
+export const decodeToken = async ({
+  authorization = "",
+  next,
+  tokenType = tokenTypeEnum.access,
+} = {}) => {
   const [bearer, token] = authorization?.split(" ");
   if (!(bearer || token)) {
     return next(new Error("Miss token parts"));
@@ -56,24 +67,27 @@ export const decodeToken = async ({ authorization = "", next, tokenType = tokenT
   let signature = await getSignature({ signatureLevel: bearer });
   const decoded = await verifyToken({
     token: token,
-    signature: tokenType === tokenTypeEnum.access ? signature.accessSignature : signature.refreshSignature
+    signature:
+      tokenType === tokenTypeEnum.access
+        ? signature.accessSignature
+        : signature.refreshSignature,
   });
 
   if (!decoded?._id) {
     return next(new Error("invalid token", { cause: 401 }));
   }
 
-
-  if (decoded.jti && await DBService.findOne({
-    model: TokenModel,
-    filter: {
-      jti:decoded.jti
-    }
-  })) {
+  if (
+    decoded.jti &&
+    (await DBService.findOne({
+      model: TokenModel,
+      filter: {
+        jti: decoded.jti,
+      },
+    }))
+  ) {
     return next(new Error("invalid login Credential"));
-  }//mean user logged out and his jti stored in token table
-
-
+  } //mean user logged out and his jti stored in token table
 
   const user = await DBService.findById({
     model: UserModel,
@@ -83,29 +97,32 @@ export const decodeToken = async ({ authorization = "", next, tokenType = tokenT
   if (!user) {
     return next(new Error("not registered account"), { cause: 404 });
   }
-  
-  return [user,decoded]
+
+  if (user.changeCredentialsTime?.getTime() > decoded.iat * 1000) {
+    return next(new Error("invalid credentials", { cause: 404 }));
+  }
+
+  return [user, decoded];
 };
 
- 
-export const generateCredential = async ({user}={}) => {
+export const generateCredential = async ({ user } = {}) => {
   const signature = await getSignature({
-      signatureLevel:
-        user.role != roleEnum.user
-          ? signatureLevelEnum.system
-          : signatureLevelEnum.bearer,
+    signatureLevel:
+      user.role != roleEnum.user
+        ? signatureLevelEnum.system
+        : signatureLevelEnum.bearer,
   });
   const jwtid = nanoid();
-  
-    const token = await generateToken({
-      payload: { _id: user._id },
-      signature: signature.accessSignature,
-      options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
-    });
-    const refresh = await refreshToken({
-      payload: { _id: user._id },
-      signature: signature.refreshSignature,
-      options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
-    });
-    return {token,refresh}
-}
+
+  const token = await generateToken({
+    payload: { _id: user._id },
+    signature: signature.accessSignature,
+    options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
+  });
+  const refresh = await refreshToken({
+    payload: { _id: user._id },
+    signature: signature.refreshSignature,
+    options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
+  });
+  return { token, refresh };
+};

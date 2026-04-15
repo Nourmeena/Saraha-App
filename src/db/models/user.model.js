@@ -84,6 +84,7 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
     },
     restoredAt: Date,
+    changeCredentialsTime:Date
   },
   {
     ///////////////////////////
