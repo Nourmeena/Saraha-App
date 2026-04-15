@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import { UserModel, roleEnum } from "../../db/models/user.model.js";
+import { TokenModel } from "../../db/models/token.model.js";
 import { successResponse } from "../../utils/response.js";
 import * as DBService from "../../db/db.service.js";
+import {nanoid} from 'nanoid'
 
 export const signatureLevelEnum = { bearer: "Bearer", system: "System" };
 export const tokenTypeEnum={access:"Access",refresh:"Refresh"}
@@ -56,9 +58,23 @@ export const decodeToken = async ({ authorization = "", next, tokenType = tokenT
     token: token,
     signature: tokenType === tokenTypeEnum.access ? signature.accessSignature : signature.refreshSignature
   });
+
   if (!decoded?._id) {
     return next(new Error("invalid token", { cause: 401 }));
   }
+
+
+  if (decoded.jti && await DBService.findOne({
+    model: TokenModel,
+    filter: {
+      jti:decoded.jti
+    }
+  })) {
+    return next(new Error("invalid login Credential"));
+  }//mean user logged out and his jti stored in token table
+
+
+
   const user = await DBService.findById({
     model: UserModel,
     id: decoded._id,
@@ -68,7 +84,7 @@ export const decodeToken = async ({ authorization = "", next, tokenType = tokenT
     return next(new Error("not registered account"), { cause: 404 });
   }
   
-  return user
+  return [user,decoded]
 };
 
  
@@ -78,15 +94,18 @@ export const generateCredential = async ({user}={}) => {
         user.role != roleEnum.user
           ? signatureLevelEnum.system
           : signatureLevelEnum.bearer,
-    });
+  });
+  const jwtid = nanoid();
   
     const token = await generateToken({
       payload: { _id: user._id },
       signature: signature.accessSignature,
+      options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
     });
     const refresh = await refreshToken({
       payload: { _id: user._id },
       signature: signature.refreshSignature,
+      options: { jwtid, expiresIn: process.env.TOKEN_EXPIRE },
     });
     return {token,refresh}
 }

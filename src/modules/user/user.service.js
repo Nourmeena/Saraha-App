@@ -1,6 +1,7 @@
 import { asyncHandler, successResponse } from "../../utils/response.js";
 import * as DBService from "../../db/db.service.js";
 import { UserModel, roleEnum } from "../../db/models/user.model.js";
+import { TokenModel} from "../../db/models/token.model.js";
 import * as crypto from "../../utils/security/encryption.security.js";
 import {compareHash,generateHash} from '../../utils/security/hash.security.js'
 import {
@@ -8,6 +9,7 @@ import {
   tokenTypeEnum,
   decodeToken,
 } from "../../utils/security/token.security.js";
+import ms from "ms";
 import { encryption } from "../../utils/security/encryption.security.js";
 
 export const profile = asyncHandler(async (req, res, next) => {
@@ -175,4 +177,19 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
    return user
      ? successResponse({ res, data: { user } })
      : next(new Error("Not registered account", { cause: 404 }));
+})
+
+
+export const logout = asyncHandler(async (req, res, next) => {
+  console.log(req.decoded.jti)
+  const revokeToken = await DBService.create({
+    model: TokenModel,
+    data:[ 
+      {
+        jti: req.decoded.jti,
+        expiresIn: req.decoded.iat + (ms(process.env.TOKEN_EXPIRE_REFRESH) / 1000),
+        userId:req.decoded._id
+      }],
+  });
+  return successResponse({res,status:201,data:{decoded:req.decoded}})
 })

@@ -45,4 +45,11 @@ router.patch('/update-password',
   validation({ schema: validators.updatePassword }),
   userService.updatePassword
 )
+
+
+router.post(
+  "/logout",
+  authentication(),
+  userService.logout,
+);
 export default router
