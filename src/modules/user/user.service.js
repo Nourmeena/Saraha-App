@@ -223,3 +223,16 @@ export const logout = asyncHandler(async (req, res, next) => {
 
   return successResponse({ res, status, data: { decoded: req.decoded } });
 });
+
+
+export const profileImage = asyncHandler(async (req, res, next) => {
+
+  const user = await DBService.findOneAndUpdate({
+    model: UserModel,
+    filter: req.user._id,
+    data: {
+      picture:req.file.finalPath
+    }
+  })  
+  return successResponse({ res, data: { user } });
+})

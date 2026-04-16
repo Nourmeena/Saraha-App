@@ -17,6 +17,8 @@ const bootstrap = async () => {
   app.get("/", () => {
     console.log("Hello world");
   });
+  //multer 
+  app.use('/uploads',express.static(path.resolve('./src/uploads')))
   //auth
   app.use("/auth", authRouter);
   //user
