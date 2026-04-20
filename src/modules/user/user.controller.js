@@ -6,6 +6,7 @@ import { endpoint } from './user.authorization.js'
 import * as validators from './user.validation.js'
 import {validation} from '../../middleware/validation.middleware.js'
 import { localFileUpload } from '../../multer/local.multer.js';
+import { fileValidation } from "../../multer/local.multer.js";
 const router = Router();
 
 router.get('/', authentication(),userService.authorization({accessRoles:endpoint.profile}), userService.profile)
@@ -57,7 +58,7 @@ router.post(
 router.patch(
   "/profile-image",
   authentication(),
-  localFileUpload({ customPath: "profileImage" }).single("profileImage"),
+  localFileUpload({ customPath: "profileImage",validation:fileValidation.image }).single("profileImage"),
   userService.profileImage,
 );
 export default router

@@ -2,7 +2,12 @@ import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
 
-export const localFileUpload = ({ customPath = "general" } = {}) => {
+export const fileValidation = {
+  image: ['image/jpeg', 'image/gif'],
+  pdf:['application/pdf','application/msword']
+}
+
+export const localFileUpload = ({ customPath = "general",validation=[] } = {}) => {
   let basePath = `uploads/${customPath}`;
 
   const storage = multer.diskStorage({
@@ -26,8 +31,17 @@ export const localFileUpload = ({ customPath = "general" } = {}) => {
       callback(null, uniqueFileName);
     },
   });
+
+  const fileFilter = function (req, file, callback) {
+    console.log(file)
+    if (validation.includes(file.mimetype)) {
+      return callback(null,true)
+    }
+    return callback(new Error('invalid file formate'),false)
+  }
   return multer({
     dest: "./temp",
+    fileFilter,
     storage,
   });
 };
