@@ -236,3 +236,15 @@ export const profileImage = asyncHandler(async (req, res, next) => {
   })  
   return successResponse({ res, data: { user } });
 })
+
+export const coverImages = asyncHandler(async (req, res, next )=> {
+  // const user = await DBService.findOneAndUpdate({
+  //   model: UserModel,
+  //   filter: req.user._id,
+  //   data: {
+  //     coverImages:req.files.map(file=>file.finalPath)
+  //   }
+  // })  
+  // console.log(req.files)
+  return successResponse({ res, data:  req.files  });
+})

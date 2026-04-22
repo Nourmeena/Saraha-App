@@ -67,6 +67,9 @@ const userSchema = new mongoose.Schema(
     picture: {
       type: String,
     },
+    coverImages: {
+      type: [String]
+    },
     confirmEmailOtp: {
       type: String,
     },

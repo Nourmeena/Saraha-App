@@ -2,6 +2,7 @@ import joi from "joi";
 import mongoose from "mongoose";
 import { generalFields } from "../../middleware/validation.middleware.js";
 import { logoutEnum } from "../../utils/security/token.security.js";
+import { fileValidation } from "../../multer/local.multer.js";
 export const shareProfile = {
   params: joi.object({
     userId: joi
@@ -50,7 +51,7 @@ export const logout = {
 };
 
 export const updatePassword = {
-  body:logout.body.append({
+  body: logout.body.append({
     oldPassword: generalFields.password.required(),
     newPassword: generalFields.password.not(joi.ref("oldPassword")).required(),
     confirmPassword: generalFields.password
@@ -59,4 +60,18 @@ export const updatePassword = {
   }),
 };
 
-
+export const coverImages = {
+  files: joi.array().items(
+    joi.object({
+      fieldname: generalFields.file.fieldname.valid("coverImages").required(),
+      originalname: joi.string().required(),
+      encoding: joi.string().required(),
+      mimetype: generalFields.file.mimetype.valid(...Object.values(fileValidation.image)).required(),
+      finalPath: joi.string().required(),
+      destination: joi.string().required(),
+      filename: joi.string().required(),
+      path: joi.string().required(),
+      size: joi.number().positive().required(),
+    }).required()
+  ).min(1).max(2).required()
+};

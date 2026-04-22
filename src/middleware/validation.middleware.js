@@ -42,8 +42,19 @@ export const generalFields = {
       "string.pattern.base": "Phone must be 10-15 digits",
       "string.empty": "Phone is required",
     }),
+  file: {
+    fieldname: Joi.string().required(),
+    originalname: Joi.string().required(),
+    encoding: Joi.string().required(),
+    mimetype: Joi.string().required(),
+    finalPath: Joi.string().required(),
+    destination: Joi.string().required(),
+    filename: Joi.string().required(),
+    path: Joi.string().required(),
+    size: Joi.number().positive().required(),
+  },
   gender: Joi.string().valid(...Object.values(genderEnum)),
-  otp: Joi.string().pattern(/^[0-9]{6}$/)
+  otp: Joi.string().pattern(/^[0-9]{6}$/),
 };
 
 export const validation = ({ schema }) => {
