@@ -65,7 +65,16 @@ const userSchema = new mongoose.Schema(
       default: providerEnum.system,
     },
     picture: {
-      type: String,
+      secure_url: String,
+      public_id: String,
+    },
+    coverImages: {
+      type: [
+        {
+          secure_url: String,
+          public_id: String,
+        },
+      ],
     },
     confirmEmailOtp: {
       type: String,
@@ -84,7 +93,7 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
     },
     restoredAt: Date,
-    changeCredentialsTime:Date
+    changeCredentialsTime: Date,
   },
   {
     ///////////////////////////

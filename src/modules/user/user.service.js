@@ -4,6 +4,13 @@ import { UserModel, roleEnum } from "../../db/models/user.model.js";
 import { TokenModel } from "../../db/models/token.model.js";
 import * as crypto from "../../utils/security/encryption.security.js";
 import {
+  uploadFile,
+  destroyFile,
+  cloud,
+  uploadFiles,
+  deleteResource,
+} from "../../multer/cloudinary.js";
+import {
   compareHash,
   generateHash,
 } from "../../utils/security/hash.security.js";
@@ -226,13 +233,41 @@ export const logout = asyncHandler(async (req, res, next) => {
 
 
 export const profileImage = asyncHandler(async (req, res, next) => {
-
+  
+  const { secure_url, public_id } = await uploadFile({ file: req.file, path: `user/${req.user._id}/profile` })
+  
   const user = await DBService.findOneAndUpdate({
     model: UserModel,
     filter: req.user._id,
     data: {
-      picture:req.file.finalPath
-    }
+      picture:{secure_url,public_id}
+    },
+    options:{new:false}
   })  
+  if (user ?.picture?.public_id) {
+    await destroyFile({public_id:user.picture.public_id})
+  }
+  return successResponse({ res, data: { user } });
+})
+
+export const coverImages = asyncHandler(async (req, res, next) => {
+  const attachments = await uploadFiles({
+    files: req.files,
+    path: `user/${req.user._id}/coverImages`,
+  });
+  
+  const user = await DBService.findOneAndUpdate({
+    model: UserModel,
+    filter: req.user._id,
+    data: {
+      coverImages: attachments,
+    },
+    options: { new: false },
+  });
+  if (user?.coverImages?.length) {
+    const oldIds = user.coverImages.map((img) => img.public_id);
+
+    await deleteResource({public_ids:oldIds});
+  }
   return successResponse({ res, data: { user } });
 })
