@@ -33,3 +33,10 @@ export const deleteResource = async ({ public_ids =[],options={type:"upload",res
 export const destroyFile = async ({ public_id="" } = {}) => {
   return await cloud().uploader.destroy(public_id);
 };
+
+export const deleteFolderByPrefix = async ({ prefix = "" } = {}) => {
+  return (
+    (await cloud().api) /
+    delete_resource_by_prefix(`${process.env.APPLICATION_NAME}/${prefix}`)
+  );
+}

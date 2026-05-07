@@ -9,6 +9,7 @@ import {
   cloud,
   uploadFiles,
   deleteResource,
+  deleteFolderByPrefix,
 } from "../../multer/cloudinary.js";
 import {
   compareHash,
@@ -162,6 +163,7 @@ export const deleteAccount = asyncHandler(async (req, res, next) => {
     },
   });
   if (user && user.deletedCount > 0) {
+    await deleteFolderByPrefix({prefix:`user/${userId}`})
     return successResponse({
       res,
       data: { deletedCount: user.deletedCount },
