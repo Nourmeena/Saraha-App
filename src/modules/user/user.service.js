@@ -26,8 +26,13 @@ import ms from "ms";
 import { encryption } from "../../utils/security/encryption.security.js";
 
 export const profile = asyncHandler(async (req, res, next) => {
-  req.user.phone = await crypto.decryption({ text: req.user.phone });
-  return successResponse({ res, data: { user: req.user } });
+  const user = await DBService.findById({
+    model: UserModel,
+    id: req.user._id,
+    populate:[{path:"messages"}]
+  })
+  req.user.phone = await crypto.decryption({ text: user.phone });
+  return successResponse({ res, data: { user } });
 });
 
 export const getNewLogin = asyncHandler(async (req, res, next) => {

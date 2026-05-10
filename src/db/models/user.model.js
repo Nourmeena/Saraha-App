@@ -98,8 +98,8 @@ const userSchema = new mongoose.Schema(
   {
     ///////////////////////////
     timestamps: true,
-    toObject: true,
-    toJSON: true,
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true },
   },
 );
 
@@ -112,6 +112,12 @@ userSchema
   .get(function () {
     return this.firstname + " " + this.lastname;
   });
+
+userSchema.virtual('messages', {
+  ref: 'Message',
+  localField: '_id',
+  foreignField:'receiverId'
+})
 
 export const UserModel =
   mongoose.models.User || mongoose.model("User", userSchema);
