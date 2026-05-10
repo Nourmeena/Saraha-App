@@ -4,7 +4,12 @@ import { validation } from "../../middleware/validation.middleware.js";
 import { signupSchema, loginSchema } from "./auth.validation.js";
 import * as validators from "./auth.validation.js";
 import { authentication } from "../../middleware/authentication.middleware.js";
-const router = Router();
+const router = Router(
+  {
+    caseSensitive: true,
+   strict:true
+  }
+);
 
 router.post(
   "/signup",

@@ -4,7 +4,10 @@ import * as messageService from "./message.service.js";
 import { validation } from "../../middleware/validation.middleware.js";
 import { cloudFileUpload, fileValidation } from "../../multer/cloud.multer.js";
 import { authentication } from "../../middleware/authentication.middleware.js";
-const router = Router();
+const router = Router({
+  caseSensitive: true,
+  strict: true,
+});
 
 router.post("/:receiverId",
     cloudFileUpload({validation:fileValidation.image}).array("attachments",2),

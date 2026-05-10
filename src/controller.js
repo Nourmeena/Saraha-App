@@ -8,11 +8,13 @@ import userRouter from "./modules/user/user.controller.js";
 import messageRouter from "./modules/message/message.controller.js";
 import { globalErrorHandler } from "./utils/response.js";
 import { sendEmail } from "./utils/email/send.email.js";
+import morgan from 'morgan'
 
 const bootstrap = async () => {
   const app = express();
   const port = process.env.PORT;
   app.use(express.json());
+  app.use(morgan('dev'))
   //DB
   await mongoDB();
   app.get("/", () => {

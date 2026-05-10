@@ -7,7 +7,10 @@ import * as validators from "./user.validation.js";
 import { validation } from "../../middleware/validation.middleware.js";
 import { cloudFileUpload } from "../../multer/cloud.multer.js";
 import { fileValidation } from "../../multer/cloud.multer.js";
-const router = Router();
+const router = Router({
+  caseSensitive: true,
+  strict: true,
+});
 
 router.get(
   "/",
