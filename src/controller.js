@@ -10,6 +10,7 @@ import { globalErrorHandler } from "./utils/response.js";
 import { sendEmail } from "./utils/email/send.email.js";
 import morgan from 'morgan'
 import cors from 'cors'
+import helmet from 'helmet'
 
 const bootstrap = async () => {
   const app = express();
@@ -30,6 +31,7 @@ const bootstrap = async () => {
   // app.use(cors(corsOptions))
 
   app.use(cors());
+  app.use(helmet())
   //DB
   await mongoDB();
   app.get("/", () => {
