@@ -9,12 +9,27 @@ import messageRouter from "./modules/message/message.controller.js";
 import { globalErrorHandler } from "./utils/response.js";
 import { sendEmail } from "./utils/email/send.email.js";
 import morgan from 'morgan'
+import cors from 'cors'
 
 const bootstrap = async () => {
   const app = express();
   const port = process.env.PORT;
   app.use(express.json());
   app.use(morgan('dev'))
+
+  // var whitelist = (process.env.ORIGINS).split(',')
+  // var corsOptions = {
+  //   origin: function (origin, callback) {
+  //     if (whitelist.indexOf(origin) !== -1) {
+  //       callback(null,true)
+  //     } else {
+  //       callback(new Error('not allowed by cors'))
+  //     }
+  //   }
+  // }
+  // app.use(cors(corsOptions))
+
+  app.use(cors());
   //DB
   await mongoDB();
   app.get("/", () => {
