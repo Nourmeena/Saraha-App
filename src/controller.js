@@ -11,6 +11,7 @@ import { sendEmail } from "./utils/email/send.email.js";
 import morgan from 'morgan'
 import cors from 'cors'
 import helmet from 'helmet'
+import { rateLimit } from "express-rate-limit";
 
 const bootstrap = async () => {
   const app = express();
@@ -32,6 +33,14 @@ const bootstrap = async () => {
 
   app.use(cors());
   app.use(helmet())
+
+  const limiter = rateLimit({
+    windowsMs: 60 * 1000,
+    limit: 2,
+    message:{error:"too many request"}
+  })
+
+  app.use(limiter)
   //DB
   await mongoDB();
   app.get("/", () => {
