@@ -8,10 +8,10 @@ const mongoDB = async () => {
           ssl: true,
           tls: true,
         });
-    console.log(result.model)
-    console.log("DB connected")
+    //console.log(result.model)
+    //console.log("DB connected")
     } catch (error) {
-        console.log("fail to connect",error)
+        //console.log("fail to connect",error)
     }
     
 }

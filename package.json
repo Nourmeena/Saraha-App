@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node --watch ./src/index.js"
   },
+  "engines": {
+    "node": "23.11.1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

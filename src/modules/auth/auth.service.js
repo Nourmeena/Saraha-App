@@ -49,7 +49,7 @@ import {
 
 export const signup = asyncHandler(async (req, res, next) => {
   const { fullname, email, password, phone, gender, role } = req.body;
-  console.log({ fullname, email, password, phone });
+  //console.log({ fullname, email, password, phone });
 
   const userExists = await DBService.findOne({
     model: UserModel,

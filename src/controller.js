@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as dotenv from "dotenv";
-dotenv.config({ path: path.join("./src/config/.env.dev") });
+//dotenv.config({ path: path.join("./src/config/.env.dev") });
+dotenv.config({})
 import express from "express";
 import mongoDB from "./db/connection.db.js";
 import authRouter from "./modules/auth/auth.controller.js";
@@ -44,7 +45,7 @@ const bootstrap = async () => {
   //DB
   await mongoDB();
   app.get("/", () => {
-    console.log("Hello world");
+    //console.log("Hello world");
   });
   //multer
   app.use("/uploads", express.static(path.resolve("./src/uploads")));
@@ -61,7 +62,7 @@ const bootstrap = async () => {
   app.use(globalErrorHandler);
 
   app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    //console.log(`Server is running on port ${port}`);
   });
 };;
 

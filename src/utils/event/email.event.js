@@ -11,7 +11,7 @@ emailEvent.on("confirmEmail", async (data) => {
       text: data.text,
       html: verifyEmailTemplate({otp:data.otp})
     }).catch((error) => {
-      console.log(`fail to send email to ${data.to}`);
+      //console.log(`fail to send email to ${data.to}`);
     });  
 })
 
@@ -22,6 +22,6 @@ emailEvent.on("sendForgetPassword", async (data) => {
     subject: data.subject || "Reset password",
     html: verifyEmailTemplate({ otp: data.otp }),
   }).catch((error) => {
-    console.log(`fail to send email to ${data.to}`);
+    //console.log(`fail to send email to ${data.to}`);
   });
 });

@@ -68,7 +68,7 @@ export const validation = ({ schema }) => {
         validationErrors.push(validationResult.error?.details);
       }
     }
-    console.log(validationErrors);
+    //console.log(validationErrors);
 
     if (validationErrors.length) {
       return res
